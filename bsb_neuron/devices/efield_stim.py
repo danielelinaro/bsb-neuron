@@ -31,8 +31,7 @@ def compute_Ve_over_cell(
                     sec.y3d(i),  # y coord
                     sec.z3d(i),  # z coord
                     sec.arc3d(i) / sec.L,  # relative position in section
-                    # electrical potential (will be filled later)
-                    Ve_soma,
+                    Ve_soma,  # electrical potential (will be filled later)
                 ]
                 for i in range(sec.n3d())
             ]
@@ -95,11 +94,11 @@ class ElectricFieldStimulator(NeuronDevice, classmap_entry="electrical_field_sti
     magnitude = config.attr(type=float, required=True)
     theta = config.attr(type=float, required=True)
     phi = config.attr(type=float, required=True)
-    stim_freq = config.attr(type=float, required=True)
-    n_cycles = config.attr(type=int, default=1)
     delay = config.attr(type=float, default=0)
+    stim_freq = config.attr(type=float, default=-1)
+    cycle_freq = config.attr(type=float, required=True)
+    n_cycles = config.attr(type=int, default=1)
     waveform_fun = config.attr(type=str, default="math.sin")
-    # stim_period = config.attr(type=float, default=-1)
 
     def implement(self, adapter, simulation, simdata):
         from neuron import h
@@ -109,11 +108,17 @@ class ElectricFieldStimulator(NeuronDevice, classmap_entry="electrical_field_sti
         waveform_fun = np.vectorize(eval(self.waveform_fun))
         time = np.r_[0:dur:dt]
         e_stim = np.zeros_like(time)
-        n_stim_samples = int(np.ceil(1000 / (self.stim_freq * dt) * self.n_cycles))
+        n_stim_samples = int(np.ceil(1000 / (self.cycle_freq * dt) * self.n_cycles))
         stim_time = np.arange(n_stim_samples) * dt / 1000
-        stim = waveform_fun(2 * np.pi * self.stim_freq * stim_time)
+        stim = waveform_fun(2 * np.pi * self.cycle_freq * stim_time)
         offset = int(self.delay / dt)
         e_stim[offset : offset + n_stim_samples] = stim
+        if self.stim_freq > 0:
+            T = int(1000 / self.stim_freq / dt)
+            offset += T
+            while offset + n_stim_samples < time.size:
+                e_stim[offset : offset + n_stim_samples] = stim
+                offset += T
         self.t_vec = h.Vector(time)
         self.E_vecs = []
         for model, population in self.targetting.get_targets(
