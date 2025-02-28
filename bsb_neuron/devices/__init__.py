@@ -1,4 +1,5 @@
 from .current_clamp import CurrentClamp
+from .efield_stim import ElectricFieldStimulator
 from .ion_recorder import IonRecorder
 from .spike_generator import SpikeGenerator
 from .synapse_recorder import SynapseRecorder
