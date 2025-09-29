@@ -1,6 +1,7 @@
 from .current_clamp import CurrentClamp
 from .efield_stim import ElectricFieldStimulator
 from .ion_recorder import IonRecorder
+from .random_current_clamp import RandomCurrentClamp
 from .spike_generator import SpikeGenerator
 from .synapse_recorder import SynapseRecorder
 from .voltage_clamp import VoltageClamp
