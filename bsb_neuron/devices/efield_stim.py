@@ -136,7 +136,8 @@ class ElectricFieldStimulator(NeuronDevice, classmap_entry="electrical_field_sti
         stim_time = np.arange(n_stim_samples) * dt / 1000
         stim = waveform_fun(2 * np.pi * self.cycle_freq * stim_time)
         offset = int(self.delay / dt)
-        e_stim[offset : offset + n_stim_samples] = stim
+        if offset + n_stim_samples < time.size:
+            e_stim[offset : offset + n_stim_samples] = stim
         if self.stim_freq > 0:
             T = int(1000 / self.stim_freq / dt)
             offset += T
