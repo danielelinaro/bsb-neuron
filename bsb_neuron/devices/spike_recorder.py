@@ -20,6 +20,7 @@ class SpikeRecorder(NeuronDevice, classmap_entry="spike_recorder"):
 
     locations = config.attr(type=LocationTargetting, default={"strategy": "soma"})
     join_population = config.attr(type=bool, default=False)
+    threshold = config.attr(type=float, default=-20.0)
 
     def check_netcon(self, adapter, target, location):
         # Insert a NetCon (if not already present) and retrieve its gid
@@ -27,7 +28,7 @@ class SpikeRecorder(NeuronDevice, classmap_entry="spike_recorder"):
             gid = location.section._transmitter.gid
         else:
             gid = target.insert_transmitter(
-                adapter.next_gid, location._loc, delay=1, weight=0.0004
+                adapter.next_gid, location._loc, delay=1, weight=0.0004, threshold=self.threshold
             ).gid
             adapter.next_gid += 1
         return gid
